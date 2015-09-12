@@ -99,7 +99,5 @@ function configure(config) {
   return passport
 }
 
-
-
 // pass back passport obj and configure method
 module.exports = {passport, configure}

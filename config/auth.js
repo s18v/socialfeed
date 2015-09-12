@@ -12,9 +12,9 @@ module.exports = {
       'callbackUrl': 'http://socialfeed.com:2000/auth/facebook/callback'
     },
     'google': {
-      'consumerKey': '446585441765-unda5mjs6307q1pqobvhiqj87m9m2kh1.apps.googleusercontent.com',
+      'consumerKey': '...',
       'consumerSecret': '...',
-      'callbackUrl': 'http://social-authenticator.com:8000/auth/google/callback'
+      'callbackUrl': '...'
     }
   },
   'testing': {
