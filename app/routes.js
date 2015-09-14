@@ -1,10 +1,66 @@
 let isLoggedIn = require('./middlewares/isLoggedIn')
+let _ = require('lodash')
+let Twitter = require('twitter')
+let then = require('express-then')
+
+let networks = {
+  twitter: {
+    network: {
+      icon: 'facebook',
+      name: 'Facebook',
+      class: 'btn-primary'
+    }
+  }
+}
 
 module.exports = (app) => {
   let passport = app.passport
-  
+  let twitterConfig = app.config.auth.twitter
+
   // Your routes here... e.g., app.get('*', handler)
   app.get('/', (req, res) => res.render('index.ejs'))
+ 
+  app.get('/timeline', isLoggedIn, then( async (req, res) => {
+    try {
+    let twitterClient = new Twitter({
+      consumer_key: twitterConfig.consumerKey,
+      consumer_secret: twitterConfig.consumerSecret,
+      access_token_key: req.user.twitter.token,
+      access_token_secret: req.user.twitter.secret
+    }) 
+    let [tweets] = await twitterClient.promise.get('statuses/home_timeline')
+    
+    tweets = tweets.map(tweet => {
+      return {
+        id: tweet.id,
+        image: tweet.user.profile_image_url,
+        text: tweet.text,
+        name: tweet.user.name,
+        username: '@'+tweet.user.screen_name,
+        liked: tweet.favorited,
+        network: networks.twitter
+      }
+    })
+
+    res.render('timeline.ejs', {
+      posts: tweets
+    })
+  } catch(e) {
+    console.log(e)
+  }
+  }))
+
+  // app.get('/reply/:id', isLoggedIn, (req, res) => {
+  //   res.render('reply.ejs', {
+  //     post: post
+  //   })
+  // })
+
+  // app.get('/share/:id', isLoggedIn, (req, res) => {
+  //   res.render('share.ejs', {
+  //     post: post
+  //   })
+  // })
 
   app.get('/profile', (req, res) => {
   	res.render('profile.ejs', {

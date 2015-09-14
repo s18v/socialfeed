@@ -17,7 +17,13 @@ let app = express(),
   config = requireDir('./config', {recurse: true}),
   port = process.env.PORT || 2000
 
-passportMiddleware.configure(config.auth[NODE_ENV])
+// set app.config to be used in routes.js
+app.config = {
+	auth: config.auth[NODE_ENV], 
+	database:config.database[NODE_ENV]
+}
+
+passportMiddleware.configure(app.config.auth)
 app.passport = passportMiddleware.passport
 
 // connect to the database
@@ -46,7 +52,6 @@ app.use(app.passport.initialize())
 app.use(app.passport.session())
 // Flash messages stored in session
 app.use(flash())
-
 // configure routes
 require('./app/routes')(app)
 

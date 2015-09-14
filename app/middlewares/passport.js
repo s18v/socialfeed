@@ -8,7 +8,7 @@ let TwitterStrategy = require('passport-twitter').Strategy
 require('songbird')
 
 function useExternalPassportStrategy(OauthStrategy, config, field) {
-
+  // field - twitter/facebook/...
   config.passReqToCallback = true
   passport.use(new OauthStrategy(config, nodeifyit(authCB, {spread: true})))
 
@@ -20,8 +20,6 @@ function useExternalPassportStrategy(OauthStrategy, config, field) {
     if (user !== null) return user
 
     user = new User()
-    console.log('user ', user)
-
     user.twitter.id = account.id
     user.twitter.token = token
     user.twitter.username = account.username
