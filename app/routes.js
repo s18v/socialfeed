@@ -22,11 +22,12 @@ module.exports = (app) => {
  
   app.get('/timeline', isLoggedIn, then( async (req, res) => {
     try {
+      console.log(req.user)
     let twitterClient = new Twitter({
       consumer_key: twitterConfig.consumerKey,
       consumer_secret: twitterConfig.consumerSecret,
       access_token_key: req.user.twitter.token,
-      access_token_secret: req.user.twitter.secret
+      access_token_secret: 'Add the secret'
     }) 
     let [tweets] = await twitterClient.promise.get('statuses/home_timeline')
     
@@ -61,6 +62,34 @@ module.exports = (app) => {
   //     post: post
   //   })
   // })
+
+  app.get('/compose', isLoggedIn, (req, res) => res.render('compose.ejs', {
+    message: req.flash('error')
+  }))
+
+  app.post('/compose', isLoggedIn, then(async (req, res) => {
+    let twitterClient = new Twitter({
+      consumer_key: twitterConfig.consumerKey,
+      consumer_secret: twitterConfig.consumerSecret,
+      access_token_key: req.user.twitter.token,
+      access_token_secret: 'Add the secret'
+    }) 
+    try {
+      let status = req.query.text
+      console.log(req.query)
+      if (status.length > 140) {
+        return req.flash('error', 'Status is over 140 characters!')
+      }
+      if (!status) {
+        return req.flash('error', 'Status cannot be empty!')
+      }
+      await twitterClient.promise.post('/statuses/update', {status})
+
+      res.redirect('/timeline') 
+    } catch (e) {
+      console.log(e)
+    }
+  }))
 
   app.get('/profile', (req, res) => {
   	res.render('profile.ejs', {
