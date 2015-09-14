@@ -22,18 +22,19 @@ module.exports = (app) => {
  
   app.get('/timeline', isLoggedIn, then( async (req, res) => {
     try {
-      console.log(req.user)
+    // console.log(req.user)
     let twitterClient = new Twitter({
       consumer_key: twitterConfig.consumerKey,
       consumer_secret: twitterConfig.consumerSecret,
       access_token_key: req.user.twitter.token,
-      access_token_secret: 'Add the secret'
+      access_token_secret: req.user.twitter.secret
     }) 
     let [tweets] = await twitterClient.promise.get('statuses/home_timeline')
     
     tweets = tweets.map(tweet => {
       return {
-        id: tweet.id,
+        // id_str needs to be used to avoid truncation
+        id: tweet.id_str,
         image: tweet.user.profile_image_url,
         text: tweet.text,
         name: tweet.user.name,
@@ -51,18 +52,6 @@ module.exports = (app) => {
   }
   }))
 
-  // app.get('/reply/:id', isLoggedIn, (req, res) => {
-  //   res.render('reply.ejs', {
-  //     post: post
-  //   })
-  // })
-
-  // app.get('/share/:id', isLoggedIn, (req, res) => {
-  //   res.render('share.ejs', {
-  //     post: post
-  //   })
-  // })
-
   app.get('/compose', isLoggedIn, (req, res) => res.render('compose.ejs', {
     message: req.flash('error')
   }))
@@ -72,22 +61,61 @@ module.exports = (app) => {
       consumer_key: twitterConfig.consumerKey,
       consumer_secret: twitterConfig.consumerSecret,
       access_token_key: req.user.twitter.token,
-      access_token_secret: 'Add the secret'
+      access_token_secret: req.user.twitter.secret
     }) 
     try {
-      let status = req.query.text
-      console.log(req.query)
+      let status = req.body.text
+      console.log('req.body - ', req.body)
+      console.log('req.params - ', req.params)
+      console.log('req.query - ', req.query)
       if (status.length > 140) {
         return req.flash('error', 'Status is over 140 characters!')
       }
       if (!status) {
         return req.flash('error', 'Status cannot be empty!')
       }
-      await twitterClient.promise.post('/statuses/update', {status})
+      await twitterClient.promise.post('statuses/update', {status})
 
       res.redirect('/timeline') 
-    } catch (e) {
+    } catch (e) { 
       console.log(e)
+    }
+  }))
+
+  app.post('/like/:id', isLoggedIn, then(async (req, res) => {
+    try {
+    var twitterClient = new Twitter({
+      consumer_key: twitterConfig.consumerKey,
+      consumer_secret: twitterConfig.consumerSecret,
+      access_token_key: req.user.twitter.token,
+      access_token_secret: req.user.twitter.secret
+    })
+
+    var id = req.params.id
+    await twitterClient.promise.post('favorites/create', {id})
+    
+    res.end()
+  } catch(e) {
+    console.log(e)
+  }
+  }))
+
+  app.post('/unlike/:id', isLoggedIn, then(async (req, res) => {
+    try {
+    // console.log(req.user)  
+    var twitterClient = new Twitter({
+      consumer_key: twitterConfig.consumerKey,
+      consumer_secret: twitterConfig.consumerSecret,
+      access_token_key: req.user.twitter.token,
+      access_token_secret: req.user.twitter.secret
+    })
+
+    var id = req.params.id
+    await twitterClient.promise.post('favorites/destroy', {id})
+    res.end()
+
+    } catch(e) {
+      console.log(e, id)
     }
   }))
 
@@ -148,23 +176,4 @@ module.exports = (app) => {
       failureRedirect: '/profile',
       failureFlash: true
   }))
-  
-  // FACEBOOK
-	// Authentication route & Callback URL
-	app.get('/auth/facebook', passport.authenticate('facebook', {scope}))
-
-	app.get('/auth/facebook/callback', passport.authenticate('facebook', {
-	    successRedirect: '/profile',
-	    failureRedirect: '/profile',
-	    failureFlash: true
-	}))
-
-	// Authorization route & Callback URL
-	app.get('/connect/facebook', passport.authorize('facebook', {scope}))
-	
-	app.get('/connect/facebook/callback', passport.authorize('facebook', {
-	    successRedirect: '/profile',
-	    failureRedirect: '/profile',
-	    failureFlash: true
-	}))
 }

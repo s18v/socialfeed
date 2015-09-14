@@ -15,7 +15,6 @@ function useExternalPassportStrategy(OauthStrategy, config, field) {
   async function authCB(req, token, _ignored_, account) {
     let user;
     let id = account.id
-
     user = await User.promise.findOne({id})
     if (user !== null) return user
 
@@ -24,6 +23,7 @@ function useExternalPassportStrategy(OauthStrategy, config, field) {
     user.twitter.token = token
     user.twitter.username = account.username
     user.twitter.displayName = account.displayName
+    user.twitter.secret = _ignored_
     try {
       await user.save() 
     } catch(e) {
