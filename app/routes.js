@@ -97,6 +97,54 @@ module.exports = (app) => {
     res.redirect('/timeline')
   }))
   
+  // retweet
+  app.post('/share/:id', then(async(req, res) => {
+    try {
+      let twitterClient = new Twitter({
+        consumer_key: twitterConfig.consumerKey,
+        consumer_secret: twitterConfig.consumerSecret,
+        access_token_key: req.user.twitter.token,
+        access_token_secret: req.user.twitter.secret
+      })
+      let params = {
+        retweet_tweet_id: req.params.id
+      }
+      let id = req.params.id
+      await twitterClient.promise.post('/statuses/retweet/'+ id)
+      res.redirect('/timeline')
+    } catch (e) {
+      console.log(e)
+    }
+  }))
+
+  app.get('/share/:id', isLoggedIn, then(async(req, res) => {
+    try {
+      let twitterClient = new Twitter({
+        consumer_key: twitterConfig.consumerKey,
+        consumer_secret: twitterConfig.consumerSecret,
+        access_token_key: req.user.twitter.token,
+        access_token_secret: req.user.twitter.secret
+      })
+      let params = {id: req.params.id}
+      // gets the particular tweet with the id
+      let tweet = await twitterClient.promise.get('statuses/retweets', params)
+      // console.log(tweet)
+      let post = {
+        id: tweet[0][0].id_str,
+        text: tweet[0][0].text
+        // username: tweet[0].user.screen_name,
+        // name: tweet[0].user.name,
+        // image: tweet[0].user.profile_image_url
+      }
+      res.render('share.ejs', {
+        post: post,
+        message: req.flash('error')
+      }) 
+    } catch(e) {
+      console.log(e)
+    }
+  }))
+  
   app.get('/compose', isLoggedIn, (req, res) => res.render('compose.ejs', {
     message: req.flash('error')
   }))
