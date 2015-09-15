@@ -32,7 +32,7 @@ Time spent: `6`
 
 ### Walkthrough
 
-![Video Walkthrough](...)
+![Video Walkthrough](SocialFeed-Walkthrough.gif)
 
 
 
